@@ -5,16 +5,17 @@ import {
 	INodeTypeDescription,
 	NodeOperationError,
 } from 'n8n-workflow';
+import * as ICAL from 'node-ical';
 
-export class ExampleNode implements INodeType {
+export class IcsNode implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Example Node',
-		name: 'exampleNode',
+		displayName: 'ICS',
+		name: 'icsNode',
 		group: ['transform'],
 		version: 1,
-		description: 'Basic Example Node',
+		description: 'Converts a string of ICS data into an array of json objects',
 		defaults: {
-			name: 'Example Node',
+			name: 'ICS',
 		},
 		inputs: ['main'],
 		outputs: ['main'],
@@ -22,12 +23,12 @@ export class ExampleNode implements INodeType {
 			// Node properties which the user gets displayed and
 			// can change on the node.
 			{
-				displayName: 'My String',
-				name: 'myString',
+				displayName: 'ICS Raw Data',
+				name: 'icsRaw',
 				type: 'string',
 				default: '',
-				placeholder: 'Placeholder value',
-				description: 'The description text',
+				placeholder: 'Raw ICS data',
+				description: 'This is the raw ICS data',
 			},
 		],
 	};
@@ -40,17 +41,33 @@ export class ExampleNode implements INodeType {
 		const items = this.getInputData();
 
 		let item: INodeExecutionData;
-		let myString: string;
+		let icsRaw: string;
 
 		// Iterates over all input items and add the key "myString" with the
 		// value the parameter "myString" resolves to.
 		// (This could be a different value for each item in case it contains an expression)
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			try {
-				myString = this.getNodeParameter('myString', itemIndex, '') as string;
+				icsRaw = this.getNodeParameter('icsRaw', itemIndex, '') as string;
 				item = items[itemIndex];
 
-				item.json['myString'] = myString;
+				const jsonICS = await ICAL.async.parseICS(icsRaw);
+				item.json['ics'] = Object.keys(jsonICS)
+					.map((key) => {
+						const obj = jsonICS[key];
+						let alarms: any[] = [];
+						Object.keys(obj).forEach((subObjectKey) => {
+							// @ts-ignore
+							if (obj?.[subObjectKey]?.type == 'VALARM') {
+								// @ts-ignore
+								alarms.push({ ...obj[subObjectKey], id: subObjectKey });
+								// @ts-ignore
+								delete obj[subObjectKey];
+							}
+						});
+						return { ...obj, id: key, alarms };
+					})
+					.filter((obj) => obj?.type == 'VEVENT');
 			} catch (error) {
 				// This node should never fail but we want to showcase how
 				// to handle errors.
