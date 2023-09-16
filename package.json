@@ -1,19 +1,19 @@
 {
   "name": "n8n-nodes-ical",
   "version": "0.1.0",
-  "description": "",
+  "description": "This is a n8n node to parse ical data and convert it to workable json.",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/Bored0ne/n8n-nodes-ical",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Stephen Seaton-Blanchard",
+    "email": "stephen@seatoncode.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Bored0ne/n8n-node-ical.git"
+    "url": "https://github.com/Bored0ne/n8n-nodes-ical.git"
   },
   "main": "index.js",
   "scripts": {
@@ -46,6 +46,7 @@
     "typescript": "~4.8.4"
   },
   "dependencies": {
+    "n8n-nodes-ical": "^0.1.0",
     "node-ical": "^0.16.1"
   }
 }
